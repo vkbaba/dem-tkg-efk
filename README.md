@@ -1,4 +1,4 @@
-# dem-tkg-efk
+# demo-tkg-efk
 ## What's this?
 Sample kubernetes manifests of elasticsearch, fluent bit, and kibana for TKG (Tanzu Kubernetes Grid) clusters.
 This repo covers only elasticsearch and kibana. To deploy Fluent bit please read the official TKG document below.
