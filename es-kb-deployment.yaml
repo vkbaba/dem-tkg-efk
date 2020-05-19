@@ -1,0 +1,97 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: elasticsearchsvc
+  labels:
+    app: elasticsearch
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 9200
+      targetPort: 9200
+      nodePort: 30201
+  selector:
+    app: elasticsearch
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  labels:
+    app: elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.5.1
+        ports:
+        - containerPort: 9200
+        env:
+        - name: "discovery.type"
+          value: "single-node"
+        - name: "node.master"
+          value: "true"
+        - name: "node.data"
+          value: "true"
+        - name: "xpack.security.enabled"
+          value: "false"
+        - name: "bootstrap.memory_lock"
+          value: "true"
+        - name: "ES_JAVA_OPTS"
+          value: "-Xms1024m -Xmx1024m"
+        volumeMounts:
+        - name: es-pv
+          mountPath: /usr/share/elasticsearch/data
+      volumes:
+      - name: es-pv
+        emptyDir: {}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: kibanasvc
+  labels:
+    app: kibana
+spec:
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 5601
+      targetPort: 5601
+      nodePort: 30202
+  selector:
+    app: kibana
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  labels:
+    app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.5.1
+        ports:
+        - containerPort: 5601
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: http://elasticsearchsvc:9200
